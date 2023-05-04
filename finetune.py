@@ -164,10 +164,14 @@ def train(
         return result
 
     def generate_and_tokenize_prompt(data_point):
+        # Some data points contain no input or empty string inputs. Replace these
+        # with None so that a different prompt template is used.
+        if data_point.get("input", None) == "":
+            data_point["input"] = None            
         full_prompt = prompter.generate_prompt(
-            data_point["instruction"],
-            data_point["input"],
-            data_point["output"],
+            data_point.get("instruction"),
+            data_point.get("input", None),
+            data_point.get("output"),
         )
         tokenized_full_prompt = tokenize(full_prompt)
         if not train_on_inputs:
@@ -225,10 +229,10 @@ def train(
     if val_set_size > 0:
         val_set_size = 128 if debug_mode else val_set_size
         train_val = data["train"].train_test_split(test_size=val_set_size, shuffle=True, seed=42)
-        train_data = train_val["train"].shuffle().map(generate_and_tokenize_prompt)
-        val_data = train_val["test"].shuffle().map(generate_and_tokenize_prompt)
+        train_data = train_val["train"].shuffle().map(generate_and_tokenize_prompt, num_proc=8)
+        val_data = train_val["test"].shuffle().map(generate_and_tokenize_prompt, num_proc=8)
     else:
-        train_data = data["train"].shuffle().map(generate_and_tokenize_prompt)
+        train_data = data["train"].shuffle().map(generate_and_tokenize_prompt, num_proc=8)
         val_data = None
 
     if not ddp and torch.cuda.device_count() > 1:
