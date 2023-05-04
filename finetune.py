@@ -146,9 +146,13 @@ def train(
         return result
 
     def generate_and_tokenize_prompt(data_point):
+        # Some data points contain no input or empty string inputs. Replace these
+        # with None so that a different prompt template is used.
+        if data_point.get("input", None) == "":
+            data_point["input"] = None            
         full_prompt = prompter.generate_prompt(
             data_point.get("instruction"),
-            data_point.get("input", ""),
+            data_point.get("input", None),
             data_point.get("output"),
         )
         tokenized_full_prompt = tokenize(full_prompt)
