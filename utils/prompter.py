@@ -47,5 +47,16 @@ class Prompter(object):
             print(res)
         return res
 
+    def generate_test_response(
+        self,
+        label: str,
+    ) -> str:
+        # returns the test prompt using the label as the expected result.
+        res = self.template["response_split"]
+        res = f"{res}\n{label}"
+        if self._verbose:
+            print(res)
+        return res
+
     def get_response(self, output: str) -> str:
         return output.split(self.template["response_split"])[1].strip()
